@@ -1,0 +1,9 @@
+@mixin cross($color: currentcolor, $size: 20px, $borderSize: 2px) {
+	background-image:
+		linear-gradient(90deg, transparent #{($size / 2 - $borderSize)}, $color #{($size / 2 - $borderSize)}, $color #{($size / 2 + $borderSize)}, transparent #{($size / 2 + $borderSize)}),
+		linear-gradient(180deg, transparent #{($size / 2 - $borderSize)}, $color #{($size / 2 - $borderSize)}, $color #{($size / 2 + $borderSize)}, transparent #{($size / 2 + $borderSize)});
+	display: inline-block;
+	height: $size;
+	transform: rotate(-45deg);
+	width: $size;
+}

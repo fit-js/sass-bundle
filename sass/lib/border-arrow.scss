@@ -1,0 +1,25 @@
+@mixin border-arrow($direction, $color: currentcolor, $size: 6px, $borderSize: 2px) {
+	@if not index(top right bottom left, $direction) {
+		@error "Direction must be either `top`, `right`, `bottom` or `left`.";
+	}
+
+	display: inline-block;
+	content: '';
+	width: $size;
+	height: $size;
+	border: $borderSize solid $color;
+	border: {
+		left: none;
+		bottom: none;
+	}
+
+	@if $direction == top {
+		transform: rotate(-45deg);
+	} @else if$direction == bottom {
+		transform: rotate(135deg);
+	} @else if$direction == left {
+		transform: rotate(-135deg);
+	} @else if$direction == right {
+		transform: rotate(45deg);
+	}
+}

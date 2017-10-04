@@ -1,0 +1,47 @@
+@if(variable-exists(bps) != true) {
+	$bps: (
+		xs: 320px,
+		sm: 480px,
+		md: 640px,
+		lg: 900px,
+		ipad: 960px,
+		xl: 1024px,
+		desktop: 1280px,
+		max: 1440px
+	) !global;
+}
+
+@function get-bp($input, $minus: false) {
+	@if map-has-key($bps, $input) {
+		$input: map-get($bps, $input);
+	}
+	@if($minus) {
+		$input: $input - 1px;
+	}
+
+	@return $input;
+}
+
+@mixin above($input) {
+	@media (min-width: #{get-bp($input)}) {
+		@content;
+	}
+}
+
+@mixin below($input) {
+	@media (max-width: #{get-bp($input, true)}) {
+		@content;
+	}
+}
+
+@mixin between($a, $b) {
+	@media (min-width: #{get-bp($a)}) and (max-width: #{get-bp($b, true)}) {
+		@content;
+	}
+}
+
+@mixin apart($a, $b) {
+	@media (max-width: #{get-bp($a, true)}), (min-width: #{get-bp($b)}) {
+		@content;
+	}
+}

@@ -1,0 +1,33 @@
+@import "bp";
+@import "position";
+
+@mixin container ($width: 960px, $gutter: false) {
+	$width: get-bp($width);
+
+	@if ($gutter) {
+		@media (max-width: #{$width + (2 * $gutter) - 1px)}) {
+			padding-left: $gutter;
+			padding-right: $gutter;
+		}
+		@media (min-width: #{$width + (2 * $gutter)}) {
+			padding-left: calc(50% - #{$width / 2});
+			padding-right: calc(50% - #{$width / 2});
+		}
+	} @else {
+		padding-left: calc(50% - #{$width / 2});
+		padding-right: calc(50% - #{$width / 2});
+	}
+}
+
+@mixin absolute-container ($width: 960px) {
+	@media (max-width: #{(get-bp($width) - 1px)}) {
+		@include absolute(left 0);
+		width: 100%;
+	}
+	@media (min-width: #{get-bp($width)}) {
+		@include absolute;
+		width: $width;
+		left: calc(50% - #{get-bp($width) / 2});
+		right: calc(50% - #{get-bp($width) / 2});
+	}
+}
