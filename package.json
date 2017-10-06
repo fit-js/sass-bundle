@@ -1,6 +1,6 @@
 {
   "name": "sass-bundle",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "dependencies": {
     "autoprefixer": "^7.1.4",
     "duplexer2": "^0.0.2",
