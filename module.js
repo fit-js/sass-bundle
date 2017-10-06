@@ -64,18 +64,21 @@ export function init (config, core) {
 	}
 }
 
-function build () {
+function build (file) {
+	var msg = file ? file : pkg.name
+	console.time (msg);
 
 	if (critical) {
 		if (testCritical) {
 			buildCritical();
 		} else {
-			buildCritical(true);
+			buildCritical (true);
 			buildRest();
 		}
 	} else {
 		buildDefault();
 	}
+	console.timeEnd (msg);
 }
 
 function buildCritical (addSuffix) {
