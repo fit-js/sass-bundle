@@ -11,6 +11,7 @@ import postCssCriticalSplit from 'postcss-critical-split';
 import gulpGroupCssMediaQuries from 'gulp-group-css-media-queries';
 import gulpRename from 'gulp-rename';
 import plumber from 'gulp-plumber';
+import gulpClip from 'gulp-clip-empty-files';
 import gulpSass from 'gulp-sass';
 import gulpUglifyCss from 'gulp-uglifycss';
 import * as pkg from './package.json';
@@ -92,6 +93,7 @@ function buildCritical (addSuffix) {
 			postCssCriticalSplit(opts),
 			autoprefixer(prefixer)
 		]))
+		.pipe (gulpClip())
 		.pipe (gulpGroupCssMediaQuries ())
 		.pipe (develop ? thru() : gulpUglifyCss())
 		.pipe (addSuffix ? gulpRename({'suffix': '.critical'}) : thru())

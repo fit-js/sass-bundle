@@ -1,6 +1,10 @@
 {
   "name": "sass-bundle",
-  "version": "0.0.2",
+  "version": "0.0.4",
+  "scripts": {
+    "dev": "rollup -c --watch",
+    "prod": "rollup -c"
+  },
   "dependencies": {
     "autoprefixer": "^7.1.4",
     "duplexer2": "^0.0.2",
@@ -9,6 +13,7 @@
     "postcss": "^6.0.12",
     "readable-stream": "^2.3.3",
     "through2": "^2.0.3",
+    "gulp-clip-empty-files": "^0.1.2",
     "vinyl-fs": "^2.4.4"
   },
   "devDependencies": {
