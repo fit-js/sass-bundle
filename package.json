@@ -1,6 +1,6 @@
 {
   "name": "sass-bundle",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "scripts": {
     "dev": "rollup -c --watch",
     "prod": "rollup -c"
@@ -17,6 +17,7 @@
     "vinyl-fs": "^2.4.4"
   },
   "devDependencies": {
+    "debounce": "^1.1.0",
     "gulp-plumber": "^1.1.0",
     "gulp-postcss": "^7.0.0",
     "gulp-rename": "^1.2.2",

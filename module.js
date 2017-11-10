@@ -3,6 +3,7 @@ import path from 'path';
 
 import vfs from 'vinyl-fs';
 import { obj as thru } from 'through2';
+import debounce from 'debounce';
 
 import gulpPostCss from 'gulp-postcss';
 import autoprefixer from 'autoprefixer';
@@ -61,12 +62,12 @@ export function init (config, core) {
 
 	if (develop && bs) {
 		return bs.watch (trigger)
-			.on ('change', build);
+			.on ('change', debounce(build, 300));
 	}
 }
 
 function build (file) {
-	var msg = file ? file : pkg.name
+	var msg = file ? path.relative('support/sass', file) : pkg.name
 	console.time (msg);
 
 	if (critical) {
