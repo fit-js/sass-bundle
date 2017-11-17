@@ -25,10 +25,10 @@ export function init (config, core) {
 	// required
 	output = config.output;
 	source = core.utils.filterNonExistingFiles (config.source || '*.scss');
-	imports = source.map((item) => {
+	trigger = config.trigger || '**/*.scss';
+	imports = [].concat(source).concat(trigger).map((item) => {
 		return path.dirname(item);
 	});
-	trigger = config.trigger || '**/*.scss';
 
 	// optional
 	prefixer = config.autoprefixer_options;
