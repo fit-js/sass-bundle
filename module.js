@@ -1,17 +1,18 @@
 'use strict';
 import path from 'path';
 
-import vfs from 'vinyl-fs';
+import VFS from 'vinyl-fs';
 import { obj as thru } from 'through2';
 import debounce from 'debounce';
 
 import gulpPostCss from 'gulp-postcss';
 import autoprefixer from 'autoprefixer';
 import postCssCriticalSplit from 'postcss-critical-split';
+import changed from 'gulp-changed';
+import plumber from 'gulp-plumber';
 
 import gulpGroupCssMediaQuries from 'gulp-group-css-media-queries';
 import gulpRename from 'gulp-rename';
-import plumber from 'gulp-plumber';
 import gulpClip from 'gulp-clip-empty-files';
 import gulpSass from 'gulp-sass';
 import gulpUglifyCss from 'gulp-uglifycss';
@@ -67,65 +68,50 @@ export function init (config, core) {
 }
 
 function build (file) {
-	var msg = file ? path.relative('support/sass', file) : pkg.name
+	let msg = file ? file : pkg.name
+	console.log (pkg.name + " compiling");
 	console.time (msg);
 
+	let stream = VFS
+		.src (source)
+		.pipe (plumber())
+		.pipe (changed(output))
+		.pipe (gulpSass (options))
+		.on ('error', gulpSass.logError)
+		.on ('end', () => {
+			console.timeEnd (msg);
+		})
+
 	if (critical) {
-		if (testCritical) {
-			buildCritical();
-		} else {
-			buildCritical (true);
-			buildRest();
-		}
+		build_critical(stream)
 	} else {
-		buildDefault();
+		buildDefault(stream);
 	}
-	console.timeEnd (msg);
 }
 
-function buildCritical (addSuffix) {
-	let opts = Object.assign ({}, criticalOpts, { output: 'critical' });
+function build_critical (stream) {
+	let opts = Object
+		.assign({ output: testCritical ? 'critical' : 'rest' }, criticalOpts);
 
-	return vfs.src (source)
-		.pipe (plumber())
-		.pipe (gulpSass (options))
-		.on ('error', gulpSass.logError)
-		.pipe (gulpPostCss ([
-			postCssCriticalSplit(opts),
-			autoprefixer(prefixer)
-		]))
-		.pipe (gulpClip())
-		.pipe (gulpGroupCssMediaQuries ())
-		.pipe (develop ? thru() : gulpUglifyCss())
-		.pipe (addSuffix ? gulpRename({'suffix': '.critical'}) : thru())
-		.pipe (vfs.dest (output));
+	stream
+	.pipe (gulpPostCss ([
+		postCssCriticalSplit(opts),
+		autoprefixer(prefixer)
+	]))
+	.pipe (gulpClip())
+	.pipe (gulpGroupCssMediaQuries ())
+	.pipe (develop ? thru() : gulpUglifyCss())
+	.pipe (testCritical ? gulpRename({'suffix': '.critical'}) : thru())
+	.pipe (VFS.dest (output));
 }
 
-function buildRest () {
-	let opts = Object.assign({}, criticalOpts, { output: 'rest' });
+function buildDefault (stream) {
 
-	return vfs.src(source)
-		.pipe (plumber())
-		.pipe (gulpSass (options))
-		.on ('error', gulpSass.logError)
-		.pipe (gulpPostCss ([
-			postCssCriticalSplit(opts),
-			autoprefixer(prefixer)
-		]))
-		.pipe (gulpGroupCssMediaQuries ())
-		.pipe (develop ? thru() : gulpUglifyCss())
-		.pipe (vfs.dest (output));
-}
-
-function buildDefault () {
-	return vfs.src (source)
-		.pipe (plumber())
-		.pipe (gulpSass (options))
-		.on ('error', gulpSass.logError)
-		.pipe (gulpPostCss ([
-			autoprefixer(prefixer)
-		]))
-		.pipe (gulpGroupCssMediaQuries ())
-		.pipe (develop ? thru() : gulpUglifyCss())
-		.pipe (vfs.dest (output));
+	stream
+	.pipe (gulpPostCss ([
+		autoprefixer(prefixer)
+	]))
+	.pipe (gulpGroupCssMediaQuries ())
+	.pipe (develop ? thru() : gulpUglifyCss())
+	.pipe (VFS.dest (output));
 }

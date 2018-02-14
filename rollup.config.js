@@ -7,12 +7,11 @@ import * as pkg from './package.json';
 export default {
 	input: pkg.module,
 	output: {
+		name: pkg.name,
 		file: pkg.main,
 		format: 'cjs'
 	},
 	external: [
-		'autoprefixer',
-		'duplexer2',
 		'gulp-group-css-media-queries',
 		'gulp-sass',
 		'postcss',
@@ -20,7 +19,6 @@ export default {
 		'through2',
 		'vinyl-fs'
 	],
-	name: pkg.name,
 	plugins: [
 		nodeResolve ({
 			module: true,
