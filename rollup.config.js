@@ -14,6 +14,7 @@ export default {
 	external: [
 		'gulp-group-css-media-queries',
 		'gulp-sass',
+		'node-sass',
 		'postcss',
 		'readable-stream',
 		'through2',
