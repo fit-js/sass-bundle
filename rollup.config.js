@@ -13,6 +13,7 @@ export default {
 	},
 	external: [
 		'gulp-group-css-media-queries',
+		'postcss-rtl',
 		'gulp-sass',
 		'node-sass',
 		'postcss',

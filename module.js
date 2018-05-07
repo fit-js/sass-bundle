@@ -11,6 +11,7 @@ import postCssCriticalSplit from 'postcss-critical-split';
 import changed from 'gulp-changed';
 import plumber from 'gulp-plumber';
 import nodeSass from 'node-sass';
+import rtl from 'postcss-rtl';
 
 import gulpGroupCssMediaQuries from 'gulp-group-css-media-queries';
 import gulpRename from 'gulp-rename';
@@ -19,7 +20,8 @@ import gulpSass from 'gulp-sass';
 import gulpUglifyCss from 'gulp-uglifycss';
 import * as pkg from './package.json';
 
-let develop, output, source, trigger, prefixer, imports, critical, testCritical, options, criticalOpts;
+
+let develop, output, source, trigger, prefixer, imports, critical, testCritical, options, criticalOpts, rtlSupport;
 
 export function init (config, core) {
 	develop = core.args.env() === 'develop';
@@ -33,6 +35,7 @@ export function init (config, core) {
 	});
 
 	// optional
+	rtlSupport = config.rtl || false;
 	prefixer = config.autoprefixer_options;
 	critical = config.critical || false;
 	testCritical = critical && config.critical === 'test';
@@ -92,14 +95,19 @@ function build (file) {
 
 	if (critical) {
 		build_critical(stream);
-	} else {
-		buildDefault(stream);
+		return;
 	}
+
+	if (rtlSupport) {
+		build_rtl(stream);
+		return;
+	}
+
+	buildDefault(stream);
 }
 
 function build_critical (stream) {
-	let opts = Object
-		.assign({ output: testCritical ? 'critical' : 'rest' }, criticalOpts);
+	let opts = {}.assign({ output: testCritical ? 'critical' : 'rest' }, criticalOpts);
 
 	stream
 		.pipe (gulpPostCss ([
@@ -110,6 +118,18 @@ function build_critical (stream) {
 		.pipe (gulpGroupCssMediaQuries ())
 		.pipe (develop ? thru() : gulpUglifyCss())
 		.pipe (testCritical ? gulpRename({'suffix': '.critical'}) : thru())
+		.pipe (VFS.dest (output));
+}
+
+function build_rtl (stream) {
+
+	stream
+		.pipe (gulpPostCss ([
+			rtl(),
+			autoprefixer(prefixer)
+		]))
+		.pipe (gulpGroupCssMediaQuries ())
+		.pipe (develop ? thru() : gulpUglifyCss())
 		.pipe (VFS.dest (output));
 }
 
