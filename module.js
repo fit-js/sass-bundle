@@ -107,7 +107,7 @@ function build (file) {
 }
 
 function build_critical (stream) {
-	let opts = {}.assign({ output: testCritical ? 'critical' : 'rest' }, criticalOpts);
+	let opts = Object.assign({ output: testCritical ? 'critical' : 'rest' }, criticalOpts);
 
 	stream
 		.pipe (gulpPostCss ([
