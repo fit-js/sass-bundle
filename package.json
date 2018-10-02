@@ -1,6 +1,6 @@
 {
   "name": "sass-bundle",
-  "version": "0.0.92",
+  "version": "0.0.93",
   "scripts": {
     "dev": "rollup -c --watch",
     "prod": "rollup -c"
