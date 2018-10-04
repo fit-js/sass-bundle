@@ -20,7 +20,6 @@ import gulpClip from 'gulp-clip-empty-files';
 import gulpSass from 'gulp-sass';
 import gulpUglifyCss from 'gulp-uglifycss';
 import * as pkg from './package.json';
-const cloneSink = gulpClone.sink();
 
 
 let develop, output, source, trigger, prefixer, imports, critical, options, criticalOpts, rtlSupport;
@@ -46,7 +45,7 @@ export function init (config, core) {
 		return;
 	}
 
-	if(critical === 'test') {
+	if (critical) {
 		core.utils.error('Critical', 'Enabled');
 	}
 
@@ -80,34 +79,45 @@ export function init (config, core) {
 	}
 }
 
+function $stream (stream) {
+	return new Promise((resolve) => {
+		stream (VFS
+			.src (source)
+			.pipe (plumber())
+			.pipe (changed(output))
+			.pipe (gulpSass (options))
+			.on ('error', gulpSass.logError)
+			.on ('end', () => {
+				resolve();
+			})
+		)
+			.pipe (gulpClip())
+			.pipe (gulpGroupCssMediaQuries ())
+			.pipe (develop ? thru() : gulpUglifyCss())
+			.pipe (VFS.dest (output));
+	});
+}
+
 function build (file) {
 	file && console.log(file + ' has changed');
 	console.time (pkg.name);
-
-	let stream = VFS
-		.src (source)
-		.pipe (plumber())
-		.pipe (changed(output))
-		.pipe (gulpSass (options))
-		.on ('error', gulpSass.logError)
-		.on ('end', () => {
-			console.timeEnd (pkg.name);
-		});
+	let stream;
 
 	if (critical) {
-		stream = buildDefault(
-			buildCritical(
-				stream.pipe(cloneSink)
-			).pipe(cloneSink.tap()))
+		stream = $stream(buildCritical)
+			.then (() => $stream(buildDefault));
+		
 	} else if (rtlSupport) {
-		stream = buildRtl(stream);
-		return;
+		stream = $stream(buildRtl);
+
 	} else {
-		stream = buildDefault(stream);
+		stream = $stream(buildDefault);
+
 	}
-
-
-	return stream.pipe (VFS.dest (output));
+		
+	stream.then(() => {
+		console.timeEnd (pkg.name);
+	});
 }
 
 function buildCritical (stream) {
@@ -118,10 +128,7 @@ function buildCritical (stream) {
 			postCssCriticalSplit(opts),
 			autoprefixer(prefixer)
 		]))
-		.pipe (gulpClip())
-		.pipe (gulpGroupCssMediaQuries ())
-		.pipe (develop ? thru() : gulpUglifyCss())
-		.pipe (gulpRename({'suffix': '.critical'}))
+		.pipe (gulpRename({'suffix': '.critical'}));
 }
 
 function buildRtl (stream) {
@@ -129,18 +136,12 @@ function buildRtl (stream) {
 		.pipe (gulpPostCss ([
 			rtl(),
 			autoprefixer(prefixer)
-		]))
-		.pipe (gulpGroupCssMediaQuries ())
-		.pipe (develop ? thru() : gulpUglifyCss())
-		.pipe (VFS.dest (output));
+		]));
 }
 
 function buildDefault (stream) {
 	return stream
 		.pipe (gulpPostCss ([
 			autoprefixer(prefixer)
-		]))
-		.pipe (gulpGroupCssMediaQuries ())
-		.pipe (develop ? thru() : gulpUglifyCss())
-		.pipe (VFS.dest (output));
+		]));
 }
