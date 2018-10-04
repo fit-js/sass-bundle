@@ -14,7 +14,6 @@ import nodeSass from 'node-sass';
 import rtl from 'postcss-rtl';
 
 import gulpGroupCssMediaQuries from 'gulp-group-css-media-queries';
-import gulpClone from 'gulp-clone';
 import gulpRename from 'gulp-rename';
 import gulpClip from 'gulp-clip-empty-files';
 import gulpSass from 'gulp-sass';
