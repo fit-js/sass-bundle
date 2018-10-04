@@ -14,14 +14,16 @@ import nodeSass from 'node-sass';
 import rtl from 'postcss-rtl';
 
 import gulpGroupCssMediaQuries from 'gulp-group-css-media-queries';
+import gulpClone from 'gulp-clone';
 import gulpRename from 'gulp-rename';
 import gulpClip from 'gulp-clip-empty-files';
 import gulpSass from 'gulp-sass';
 import gulpUglifyCss from 'gulp-uglifycss';
 import * as pkg from './package.json';
+const cloneSink = gulpClone.sink();
 
 
-let develop, output, source, trigger, prefixer, imports, critical, testCritical, options, criticalOpts, rtlSupport;
+let develop, output, source, trigger, prefixer, imports, critical, options, criticalOpts, rtlSupport;
 
 export function init (config, core) {
 	develop = core.args.env() === 'develop';
@@ -38,7 +40,6 @@ export function init (config, core) {
 	rtlSupport = config.rtl || false;
 	prefixer = config.autoprefixer_options;
 	critical = config.critical || false;
-	testCritical = critical && config.critical === 'test';
 
 	if (!output) {
 		core.utils.error (pkg.name, 'config.output are required');
@@ -94,22 +95,25 @@ function build (file) {
 		});
 
 	if (critical) {
-		build_critical(stream);
+		stream = buildDefault(
+			buildCritical(
+				stream.pipe(cloneSink)
+			).pipe(cloneSink.tap()))
+	} else if (rtlSupport) {
+		stream = buildRtl(stream);
 		return;
+	} else {
+		stream = buildDefault(stream);
 	}
 
-	if (rtlSupport) {
-		build_rtl(stream);
-		return;
-	}
 
-	buildDefault(stream);
+	return stream.pipe (VFS.dest (output));
 }
 
-function build_critical (stream) {
-	let opts = Object.assign({ output: testCritical ? 'critical' : 'rest' }, criticalOpts);
+function buildCritical (stream) {
+	let opts = Object.assign({ output: 'critical' }, criticalOpts);
 
-	stream
+	return stream
 		.pipe (gulpPostCss ([
 			postCssCriticalSplit(opts),
 			autoprefixer(prefixer)
@@ -117,13 +121,11 @@ function build_critical (stream) {
 		.pipe (gulpClip())
 		.pipe (gulpGroupCssMediaQuries ())
 		.pipe (develop ? thru() : gulpUglifyCss())
-		.pipe (testCritical ? gulpRename({'suffix': '.critical'}) : thru())
-		.pipe (VFS.dest (output));
+		.pipe (gulpRename({'suffix': '.critical'}))
 }
 
-function build_rtl (stream) {
-
-	stream
+function buildRtl (stream) {
+	return stream
 		.pipe (gulpPostCss ([
 			rtl(),
 			autoprefixer(prefixer)
@@ -134,8 +136,7 @@ function build_rtl (stream) {
 }
 
 function buildDefault (stream) {
-
-	stream
+	return stream
 		.pipe (gulpPostCss ([
 			autoprefixer(prefixer)
 		]))
