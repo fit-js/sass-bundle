@@ -23,12 +23,12 @@ import * as pkg from './package.json';
 
 let develop, output, source, trigger, prefixer, imports, critical, options, criticalOpts, rtlSupport;
 
-export function init (config, core) {
+export function init(config, core) {
 	develop = core.args.env() === 'develop';
 
 	// required
 	output = config.output;
-	source = core.utils.filterNonExistingFiles (config.source || '*.scss');
+	source = core.utils.filterNonExistingFiles(config.source || '*.scss');
 	trigger = config.trigger || '**/*.scss';
 	imports = [].concat(source).concat(trigger).map((item) => {
 		return path.dirname(item);
@@ -40,7 +40,7 @@ export function init (config, core) {
 	critical = config.critical || false;
 
 	if (!output) {
-		core.utils.error (pkg.name, 'config.output are required');
+		core.utils.error(pkg.name, 'config.output are required');
 		return;
 	}
 
@@ -71,41 +71,41 @@ export function init (config, core) {
 	let bs = core.globals.get('bs');
 
 	if (develop && bs) {
-		return bs.watch (trigger)
-			.on ('change', 
+		return bs.watch(trigger)
+			.on('change',
 				debounce(build, 100)
 			);
 	}
 }
 
-function $stream (stream) {
+function $stream(stream) {
 	return new Promise((resolve) => {
-		stream (VFS
-			.src (source)
-			.pipe (plumber())
-			.pipe (changed(output))
-			.pipe (gulpSass (options))
-			.on ('error', gulpSass.logError)
-			.on ('end', () => {
+		stream(VFS
+			.src(source)
+			.pipe(plumber())
+			.pipe(changed(output))
+			.pipe(gulpSass(options))
+			.on('error', gulpSass.logError)
+			.on('end', () => {
 				resolve();
 			})
 		)
-			.pipe (gulpClip())
-			.pipe (gulpGroupCssMediaQuries ())
-			.pipe (develop ? thru() : gulpUglifyCss())
-			.pipe (VFS.dest (output));
+			.pipe(gulpClip())
+			.pipe(gulpGroupCssMediaQuries())
+			.pipe(develop ? thru() : gulpUglifyCss())
+			.pipe(VFS.dest(output));
 	});
 }
 
-function build (file) {
+function build(file) {
 	file && console.log(file + ' has changed');
-	console.time (pkg.name);
+	console.time(pkg.name);
 	let stream;
 
 	if (critical) {
 		stream = $stream(buildCritical)
-			.then (() => $stream(buildDefault));
-		
+			.then(() => $stream(buildDefault));
+
 	} else if (rtlSupport) {
 		stream = $stream(buildRtl);
 
@@ -113,34 +113,34 @@ function build (file) {
 		stream = $stream(buildDefault);
 
 	}
-		
+
 	stream.then(() => {
-		console.timeEnd (pkg.name);
+		console.timeEnd(pkg.name);
 	});
 }
 
-function buildCritical (stream) {
+function buildCritical(stream) {
 	let opts = Object.assign({ output: 'critical' }, criticalOpts);
 
 	return stream
-		.pipe (gulpPostCss ([
+		.pipe(gulpPostCss([
 			postCssCriticalSplit(opts),
 			autoprefixer(prefixer)
 		]))
-		.pipe (gulpRename({'suffix': '.critical'}));
+		.pipe(gulpRename({ 'suffix': '.critical' }));
 }
 
-function buildRtl (stream) {
+function buildRtl(stream) {
 	return stream
-		.pipe (gulpPostCss ([
+		.pipe(gulpPostCss([
 			rtl(),
 			autoprefixer(prefixer)
 		]));
 }
 
-function buildDefault (stream) {
+function buildDefault(stream) {
 	return stream
-		.pipe (gulpPostCss ([
+		.pipe(gulpPostCss([
 			autoprefixer(prefixer)
 		]));
 }
